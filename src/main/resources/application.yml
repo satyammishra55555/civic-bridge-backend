@@ -2,17 +2,19 @@ server:
   port: 8080
 
 spring:
+
   datasource:
-    url: jdbc:mysql://localhost:3306/civic_bridge
+    url: jdbc:mysql://localhost:3306/civic_bridge?useSSL=false&serverTimezone=Asia/Kolkata&allowPublicKeyRetrieval=true
     username: root
-    password: root
+    password: Satyam@123
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
+
     show-sql: true
-    open-in-view: false
+
     properties:
       hibernate:
         format_sql: true
@@ -23,6 +25,11 @@ spring:
       max-file-size: 20MB
       max-request-size: 20MB
 
+jwt:
+  secret: CivicBridgeSecretKeyForJwtAuthentication2026Production
+  expiration: 86400000
+
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
