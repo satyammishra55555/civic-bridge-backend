@@ -16,11 +16,13 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter
+        extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
     private final CustomUserDetailsService userDetailsService;
+
 
     @Override
     protected void doFilterInternal(
@@ -32,38 +34,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorizationHeader =
                 request.getHeader("Authorization");
 
-        String username = null;
         String jwtToken = null;
 
-        /*
-         * Check Authorization header
-         *
-         * Expected:
-         *
-         * Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-         */
+        String username = null;
+
+
+        // =========================================
+        // READ AUTHORIZATION HEADER
+        // =========================================
+
         if (authorizationHeader != null
                 && authorizationHeader.startsWith("Bearer ")) {
 
-            jwtToken = authorizationHeader.substring(7);
+            jwtToken =
+                    authorizationHeader
+                            .substring(7)
+                            .trim();
 
             try {
-                username = jwtService.extractUsername(jwtToken);
+
+                // =========================================
+                // VALIDATE ACCESS TOKEN
+                // =========================================
+
+                if (jwtService.validateAccessToken(
+                        jwtToken)) {
+
+                    username =
+                            jwtService.extractUsername(
+                                    jwtToken
+                            );
+                }
+
             } catch (Exception exception) {
 
-                logger.error(
-                        "Invalid JWT token: "
+                System.out.println(
+                        "JWT Filter Error: "
                                 + exception.getMessage()
                 );
             }
         }
 
-        /*
-         * Authenticate user only if:
-         *
-         * 1. Username exists
-         * 2. User is not already authenticated
-         */
+
+        // =========================================
+        // SET SECURITY CONTEXT
+        // =========================================
+
         if (username != null
                 && SecurityContextHolder
                 .getContext()
@@ -73,6 +89,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     userDetailsService
                             .loadUserByUsername(username);
 
+
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -80,16 +97,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             userDetails.getAuthorities()
                     );
 
+
             authentication.setDetails(
                     new WebAuthenticationDetailsSource()
                             .buildDetails(request)
             );
 
+
             SecurityContextHolder
                     .getContext()
-                    .setAuthentication(authentication);
+                    .setAuthentication(
+                            authentication
+                    );
+
+
+            System.out.println(
+                    "JWT Authentication Successful for: "
+                            + username
+            );
         }
 
-        filterChain.doFilter(request, response);
+
+        filterChain.doFilter(
+                request,
+                response
+        );
     }
 }

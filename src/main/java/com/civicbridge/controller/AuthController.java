@@ -2,6 +2,7 @@ package com.civicbridge.controller;
 
 import com.civicbridge.dto.AuthResponse;
 import com.civicbridge.dto.LoginRequest;
+import com.civicbridge.dto.RefreshTokenRequest;
 import com.civicbridge.dto.RegisterRequest;
 import com.civicbridge.service.AuthService;
 import jakarta.validation.Valid;
@@ -17,22 +18,47 @@ public class AuthController {
 
     private final AuthService authService;
 
+
+    // =========================================
+    // REGISTER
+    // =========================================
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
             @Valid @RequestBody RegisterRequest request) {
 
-        return new ResponseEntity<>(
-                authService.register(request),
-                HttpStatus.CREATED);
-
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        authService.register(request)
+                );
     }
+
+
+    // =========================================
+    // LOGIN
+    // =========================================
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest request) {
 
-        return ResponseEntity.ok(authService.login(request));
-
+        return ResponseEntity.ok(
+                authService.login(request)
+        );
     }
 
+
+    // =========================================
+    // REFRESH TOKEN
+    // =========================================
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request) {
+
+        return ResponseEntity.ok(
+                authService.refreshToken(request)
+        );
+    }
 }
