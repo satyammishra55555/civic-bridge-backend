@@ -25,7 +25,6 @@ public class JwtService {
     private final long refreshTokenExpiration =
             7L * 24 * 60 * 60 * 1000;
 
-
     // =========================================
     // INITIALIZE SECRET KEY
     // =========================================
@@ -37,7 +36,6 @@ public class JwtService {
                 secret.getBytes(StandardCharsets.UTF_8)
         );
     }
-
 
     // =========================================
     // GENERATE ACCESS TOKEN
@@ -59,7 +57,6 @@ public class JwtService {
                 .compact();
     }
 
-
     // =========================================
     // GENERATE REFRESH TOKEN
     // =========================================
@@ -80,18 +77,14 @@ public class JwtService {
                 .compact();
     }
 
-
     // =========================================
     // EXTRACT USERNAME
     // =========================================
 
     public String extractUsername(String token) {
 
-        Claims claims = getClaims(token);
-
-        return claims.getSubject();
+        return getClaims(token).getSubject();
     }
-
 
     // =========================================
     // VALIDATE ACCESS TOKEN
@@ -103,27 +96,18 @@ public class JwtService {
 
             Claims claims = getClaims(token);
 
-            String tokenType =
+            String type =
                     claims.get("type", String.class);
 
-            Date expiration =
-                    claims.getExpiration();
-
-            return "ACCESS".equals(tokenType)
-                    && expiration != null
-                    && expiration.after(new Date());
+            return "ACCESS".equals(type)
+                    && !claims.getExpiration()
+                    .before(new Date());
 
         } catch (Exception exception) {
-
-            System.out.println(
-                    "Access Token Validation Failed: "
-                            + exception.getMessage()
-            );
 
             return false;
         }
     }
-
 
     // =========================================
     // VALIDATE REFRESH TOKEN
@@ -135,30 +119,65 @@ public class JwtService {
 
             Claims claims = getClaims(token);
 
-            String tokenType =
+            String type =
                     claims.get("type", String.class);
 
-            Date expiration =
-                    claims.getExpiration();
+            // DEBUG
+            System.out.println(
+                    "========== REFRESH TOKEN DEBUG =========="
+            );
 
-            return "REFRESH".equals(tokenType)
-                    && expiration != null
-                    && expiration.after(new Date());
+            System.out.println(
+                    "Username: " +
+                            claims.getSubject()
+            );
+
+            System.out.println(
+                    "Token Type: " +
+                            type
+            );
+
+            System.out.println(
+                    "Issued At: " +
+                            claims.getIssuedAt()
+            );
+
+            System.out.println(
+                    "Expiration: " +
+                            claims.getExpiration()
+            );
+
+            System.out.println(
+                    "Current Time: " +
+                            new Date()
+            );
+
+            System.out.println(
+                    "========================================="
+            );
+
+            return "REFRESH".equals(type)
+                    && !claims.getExpiration()
+                    .before(new Date());
 
         } catch (Exception exception) {
 
             System.out.println(
-                    "Refresh Token Validation Failed: "
-                            + exception.getMessage()
+                    "========== REFRESH TOKEN ERROR =========="
+            );
+
+            exception.printStackTrace();
+
+            System.out.println(
+                    "========================================="
             );
 
             return false;
         }
     }
 
-
     // =========================================
-    // PARSE JWT CLAIMS
+    // GET CLAIMS
     // =========================================
 
     private Claims getClaims(String token) {
